@@ -2,10 +2,9 @@
 
 /**
  * my_strcspn - Finds the length of the initial segment of a string
- * @str: The input string
- * @delim: The set of characters that separate strings
- *
- * Return: The length of the initial segment of str 
+ * @s: pointer to nullterminated string
+ * @reject:ptr thar contains chars to match
+ * Return: The length of the initial segment of str
  *
  */
 
@@ -27,5 +26,5 @@ size_t my_strcspn(const char *s, const char *reject)
 	count++;
 	}
 
-	return count;
+	return (count);
 }
