@@ -22,7 +22,7 @@ This simple shell (DGShell 😊 : ) is a command line interpreter that replicate
 
 ## How to compile & use
 
-	gcc -Wall -Werror -Wextra -pedantic *.c -o hsh
+	gcc -Wall -Werror -Wextra -pedantic *.c -o dgshell
   
 	./dgshell
   
