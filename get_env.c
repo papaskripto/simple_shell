@@ -24,7 +24,13 @@ int my_strcmp(const char *str1, const char *str2)
 		}
 
 	/* If both strings are equal, return 0*/
-	return 0;
+	if (str1[i] == str2[i])
+	{
+		return 0;
+	}
+	}
+	return -1;
+
 }
 
 /**
@@ -46,10 +52,12 @@ void print_enviroment(char *arguments[64])
 
 		/* Move to the next environment variable*/
 		env_var = *(environ++);
-	}
+		}
+
 
 	/* Exit the function*/
 	exit(0);
 	}
 }
+
 

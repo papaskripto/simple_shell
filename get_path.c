@@ -58,18 +58,32 @@ int find_path(char *args[64])
 	return (0);
 }
 
+
+char *my_strchr(const char *s, int c)
+{
+    while (*s != '\0') {
+        if (*s == c) {
+            return (char *)s;
+        }
+        s++;
+    }
+    return NULL;
+}
+
+
 /**
  * fork_process - function  child process to execute the command
  * @env:Array to store environment variables.
  * @i:Counter for the arguments
  * return: void
  */
-
+char *my_strchr(const char *s, int c);
+void print_enviroment(char *args[64]);
 void fork_process(char *token, char *input, char *args[64])
 {
 	/* Array to store environment variables (not used in this shell) */
 	char *env[1] = {NULL};
-	int i = 0;
+	int i = 0, j;
 
 	/* Tokenize the user input by space to get each argument */
 	token = strtok(input, " ");
@@ -83,17 +97,17 @@ void fork_process(char *token, char *input, char *args[64])
 		token = strtok(NULL, "\n");
 	}
 
-	/* Set the last element in the args array to NULL (required by execve) */
+	/* Set the last element in the args array to NULL */
 	*(args + i) = NULL;
 
-	/* Print the environment variables (not used in this shell) */
+	/* Print the environment variables*/
 	print_enviroment(args);
 
 	/* Exit the program if the input is "exit" */
 	exit_shell(input);
 
 	/* Check if the command is a path to an executable file */
-	if (strchr(args[0], '/') != NULL)
+	if (my_strchr(args[0], '/') != NULL)
 	{
 		/* If the file is executable, execute it */
 		if (access(args[0], X_OK) == 0)
@@ -113,6 +127,16 @@ void fork_process(char *token, char *input, char *args[64])
 	}
 	else
 	{
+		/* Declare and initialize the variables for the find_path and execve functions */
+                char *arg_list[64];
+                char *env_list[1] = {NULL};
+
+                /* Copy the args array to the arg_list array */
+                for ( j = 0; j < i; j++)
+                        arg_list[j] = args[j];
+
+                /* Add the NULL terminator to the arg_list array */
+                arg_list[i] = NULL;
 		/* Handle the 'PATH' commands */
 		if (find_path(arg_list) == -1)
 		exit(1);
