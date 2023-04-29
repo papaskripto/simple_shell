@@ -1,5 +1,11 @@
 #include "shell.h"
 
+/**
+ * atoi_ - converts a string to an integer
+ * @s: string to be converted
+ * Return:converted strings
+ */
+
 long int atoi_(char *s)
 {
 	int m, len, f, digit;
@@ -7,7 +13,7 @@ long int atoi_(char *s)
 
 	m = 0;
 	n = 0;
-	len = _strlen(s);
+	len = my_strlen(s);
 	f = 0;
 	digit = 0;
 
@@ -40,7 +46,13 @@ long int atoi_(char *s)
 	return (n);
 }
 
-char *cnvrt(int num, int base)
+/**
+ * convert_num_str - converts number and base into string
+ * @num: input number
+ * @base: input base
+ * Return: string results
+ */
+char *convert_num_str(int num, int base)
 {
 	static char *rep = "0123456789";
 	static char buffer[50];

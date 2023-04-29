@@ -1,84 +1,107 @@
 #include "shell.h"
 
-#define MAX_COMMAND_LENGTH 2048
-void exit_shell(char *input);
-void print_enviroment(char *args[64]);
-int my_strcmp(const char *str1, const char *str2);
-/*size_t my_strcspn(const char *s, const char *reject);*/
-size_t my_strcspn(const char *s, const char *reject);
-void fork_process(char *token, char *input, char *args[64]);
-int find_path(char *args[64]);
-char *my_strchr(const char *s, int c);
-
 /**
- * main - function will display take user input and execute in custom shell
- * @isatty(STDIN_FILENO):checks if stdin is a terminal
- * Return: 0 on success
- */
-int main(void)
+* cmd_exec -  executes commands
+* @input: array of arguments from stdin
+* @s: name of the program
+* @i: index of error
+* @head: linked list containing environment
+* Return: return to main loop with 1 on success, or 0 on failure
+*/
+
+int cmd_exec(char **input, char *s, int *i, env_t **head)
 {
-	char user_input[MAX_COMMAND_LENGTH];
-	char *argmnts[64] = { NULL };
+	struct stat filestat;
+	int status = 0;
+	char *full_command = NULL, **env = NULL;
+	pid_t child_pid;
 
-
-	/* Check if standard input is a terminal*/
-	if (isatty(STDIN_FILENO))
+	child_pid = fork();
+	if (child_pid == -1)
 	{
-		while (1)
+		print_error(i, s, input);
+		free_ptr(input);
+		exit(EXIT_SUCCESS);
+	}
+	if (child_pid == 0)
 	{
-		/* display prompt and wait for user to input command */
-		printf("DGShell: 😊 : ");
-		fflush(stdout);
-
-		if (fgets(user_input, MAX_COMMAND_LENGTH, stdin) == NULL)
+		env = lst_2_arr(*head);
+		if (get_env("PATH=", env)[0] != '/')
+			execve(input[0], input, env);
+		full_command = find_path(input, env);
+		if (!full_command && !stat(input[0], &filestat))
 		{
-			/* handle the end of file condition */
-			printf("\n");
-			return (0);
+			if (execve(input[0], input, env) == -1)
+			{
+				print_error(i, s, input);
+				free_ptr(input), free_ptr(env);
+				return (0);
+			}
+			free_ptr(input);
+			free_ptr(env);
 		}
-		/* remove newline character from input */
-		user_input[my_strcspn(user_input, "\n")] = '\0';
-
-		/* check & execute if exit command is input */
-		exit_shell(user_input);
-		/* call print_env if user input is "env" */
-		argmnts[0] = user_input;
-		argmnts[1] = NULL;
-		print_enviroment(argmnts);
-
-		/* tokenize input and fork a child process to execute each token */
-		if (user_input != NULL && user_input[0] != '\0')
-            {
-                fork_process(user_input, user_input, argmnts);
-            }
-        }
-    }
-		else
+		if (execve(full_command, input, env) == -1)
 		{
-		/* Standard input is not a terminal, read commands from standard input*/
-		while (fgets(user_input, MAX_COMMAND_LENGTH, stdin) != NULL)
-		{
-
-		/* remove newline character from input */
-		user_input[my_strcspn(user_input, "\n")] = '\0';
-		/* check & execute if exit command is input */
-		exit_shell(user_input);
-
-		/* call print_env if user input is "env" */
-		argmnts[0] = user_input;
-		argmnts[1] = NULL;
-		print_enviroment(argmnts);
-
-		if (user_input != NULL && user_input[0] != '\0')
-		{
-		/* tokenize input and fork a child process to execute each token */ 
-                     fork_process(user_input, user_input, argmnts);
-     
-            }
-        }
-    }
-	return (0);
-
+			print_error(i, s, input);
+			free(full_command), free_ptr(input), free_ptr(env);
+			exit(EXIT_SUCCESS);
+		}
+	}
+	else
+		wait(&status);
+	free_ptr(input), free_ptr(env);
+	return (1);
 }
 
+/**
+ * main - simple command-line argument interpreter
+ * prints a prompt and waits for the user to input a command,
+ * then creates a child process in which it exececutes the command
+ * @ac: number of arguments
+ * @av: array of arguments
+ *
+ * Return: always 0, for success
+ */
+int main(int ac, char *av[])
+{
+	size_t len = 0;
+	int cmd_count = 0, getline_output;
+	char **input = NULL, *line = NULL, *progg_nme = av[0];
+	env_t *head = NULL;
 
+	if (ac != 1)
+	{
+		print_main_error(av);
+		exit(127);
+	}
+	signal(SIGINT, handle_sigint);
+	arr_2_lst(&head, environ);
+	while (1)
+	{
+		if (isatty(STDIN_FILENO) != 0 && isatty(STDOUT_FILENO) != 0)
+			print_prompt();
+		getline_output = getline(&line, &len, stdin);
+
+		if (getline_output < 0)
+		{
+			if (isatty(STDIN_FILENO) != 0 && isatty(STDOUT_FILENO) != 0)
+				my_putchar('\n');
+			break;
+		}
+		cmd_count++;
+		if (my_strcmp(line, "\n") == 0)
+			continue;
+		input = prs_lne(line, getline_output);
+		if (!input)
+			continue;
+		if (check_builtin_cmd(line, input, progg_nme, &cmd_count, &head))
+		{
+			free_ptr(input);
+			continue;
+		}
+		if (!cmd_exec(input, progg_nme, &cmd_count, &head))
+			break;
+	}
+	fr_lst(&head), free(line);
+	return (0);
+}

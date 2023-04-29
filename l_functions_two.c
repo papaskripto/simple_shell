@@ -1,5 +1,12 @@
 #include "shell.h"
 
+/**
+ * arr_2_lst - transforms the environ variable into a linked list
+ * @head: double pointer to the env_t list to fill
+ * @env: array of strings containing the environment variables
+ * Return: num of nodes
+ */
+
 int arr_2_lst(env_t **head, char **env)
 {
 	int i = 0;
@@ -9,12 +16,17 @@ int arr_2_lst(env_t **head, char **env)
 
 	while (env[i])
 	{
-		add_node_end(head, env[i]);
+		add_node_at_end(head, env[i]);
 		i++;
 	}
 	return (i);
 }
 
+/**
+ * lst_2_arr - transforms a linked list in an array of strings
+ * @head: pointer to the env_t list
+ * Return:array address
+ */
 char **lst_2_arr(env_t *head)
 {
 	env_t *temp = head;
@@ -33,20 +45,25 @@ char **lst_2_arr(env_t *head)
 
 	for (i = 0; temp; temp = temp->next, i++)
 	{
-		s = malloc(sizeof(char) * (_strlen(temp->str) + 1));
+		s = malloc(sizeof(char) * (my_strlen(temp->str) + 1));
 		if (!s)
 		{
 			free_ptr(arr);
 			return (NULL);
 		}
-		s = _strcpy(s, temp->str);
+		s = my_strcpy(s, temp->str);
 		arr[i] = s;
 	}
 	arr[i] = NULL;
 
 	return (arr);
 }
-
+/**
+ * prt_lst - prints all the nodes of a linked list
+ * @h: pointer to the list_t list to print
+ *
+ * Return:  num of nodes printed
+ */
 size_t prt_lst(env_t *h)
 {
 	size_t s = 0;
@@ -54,15 +71,20 @@ size_t prt_lst(env_t *h)
 	while (h)
 	{
 		if (!h->str)
-			_puts("(nil)");
+			my_puts("(nil)");
 		else
-			_puts(h->str);
+			my_puts(h->str);
 		h = h->next;
 		s++;
 	}
 
 	return (s);
 }
+/**
+ * fr_lst - frees all the nodes of a linked list
+ * @head: list_t list to be freed
+ * Return:0
+ */
 
 void fr_lst(env_t **head)
 {
@@ -82,6 +104,12 @@ void fr_lst(env_t **head)
 	*head = NULL;
 }
 
+/**
+ * list_length - returns the num of elements in a linked list
+ * @h: pointer to the env_t list
+ *
+ * Return: num of elements in h
+ */
 size_t list_length(const env_t *h)
 {
 	size_t n = 0;
